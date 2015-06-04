@@ -196,6 +196,7 @@
             //"container-array-actionbar": "/DesktopModules/OpenContent/alpaca/templates/dnn-edit/container-array-actionbar.html",
             "control-image": "/DesktopModules/OpenContent/alpaca/templates/dnn-edit/control-image.html",
             "control-wysihtml": "/DesktopModules/OpenContent/alpaca/templates/dnn-edit/control-wysihtml.html"
+            //"control-mltext": "/DesktopModules/OpenContent/alpaca/templates/dnn-edit/control-mltext.html"
         }
     });
 

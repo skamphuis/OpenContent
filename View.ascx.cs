@@ -168,7 +168,7 @@ namespace Satrabel.OpenContent
                         else
                         {
                             HandlebarsEngine hbEngine = new HandlebarsEngine();
-                            return hbEngine.Execute(Page, RazorScriptFile, model);
+                            return hbEngine.Execute(Page, ModuleContext.PortalSettings, RazorScriptFile, model);
                             //Controls.Add(new LiteralControl(Server.HtmlDecode(result)));
                          }
                     }

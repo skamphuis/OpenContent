@@ -16,6 +16,8 @@
 <script type="text/javascript" src="<%=ControlPath %>alpaca/js/fields/dnn/UrlField.js"></script>
 <script type="text/javascript" src="<%=ControlPath %>alpaca/js/fields/dnn/CKEditorField.js"></script>
 
+<script type="text/javascript" src="<%=ControlPath %>alpaca/js/fields/dnn/MLTextField.js"></script>
+
 <script type="text/javascript" src="<%=ControlPath %>alpaca/js/fields/dnn/wysihtmlField.js"></script>
 
 <dnncl:DnnCssInclude ID="DnnCssInclude1" runat="server" FilePath="~/DesktopModules/OpenContent/css/font-awesome/css/font-awesome.min.css" AddTag="false" />
@@ -63,6 +65,7 @@
             var ConnectorClass = Alpaca.getConnectorClass("default");
             connector = new ConnectorClass("default");
             connector.servicesFramework = sf;
+            connector.culture = '<%=PortalSettings.CultureCode%>';
 
             $.alpaca.Fields.DnnFileField = $.alpaca.Fields.FileField.extend({
                 setup: function () {

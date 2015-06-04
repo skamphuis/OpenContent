@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using HandlebarsDotNet;
+using DotNetNuke.Entities.Portals;
 
 namespace Satrabel.OpenContent.Components.Handlebars
 {
@@ -22,7 +23,7 @@ namespace Satrabel.OpenContent.Components.Handlebars
             var result = template(model);
             return result;
         }
-        public string Execute(Page page, string sourceFilename, dynamic model)
+        public string Execute(Page page, PortalSettings portalsettings, string sourceFilename, dynamic model)
         {
             string source = File.ReadAllText(System.Web.Hosting.HostingEnvironment.MapPath(sourceFilename));
             string sourceFolder = Path.GetDirectoryName(sourceFilename).Replace("\\", "/") + "/";
@@ -33,6 +34,7 @@ namespace Satrabel.OpenContent.Components.Handlebars
             RegisterScriptHelper(hbs);
             RegisterRegisterStylesheetHelper(hbs, page, sourceFolder);
             RegisterRegisterScriptHelper(hbs, page, sourceFolder);
+            RegisterCurrentLang(hbs, portalsettings);
             var template = hbs.Compile(source);
             var result = template(model);
             return result;
@@ -115,6 +117,30 @@ namespace Satrabel.OpenContent.Components.Handlebars
                 {
                     string cssfilename = sourceFolder + parameters[0];
                     ClientResourceManager.RegisterStyleSheet(page, page.ResolveUrl(cssfilename), FileOrder.Css.PortalCss);
+                }
+            });
+        }
+
+        private void RegisterCurrentLang(HandlebarsDotNet.IHandlebars hbs, PortalSettings portalsettings)
+        {
+            hbs.RegisterHelper("currentlang", (writer, context, parameters) =>
+            {
+                if (parameters.Length == 1)
+                {
+                    try
+                    {
+                        object target = parameters[0];
+                        string name = portalsettings.CultureCode;
+                        var site = System.Runtime.CompilerServices.CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>.Create(Microsoft.CSharp.RuntimeBinder.Binder.GetMember(0, name, target.GetType(), new[] { Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(0, null) }));
+                        object value = site.Target(site, target);
+
+                        HandlebarsDotNet.HandlebarsExtensions.WriteSafeString(writer, value.ToString());
+                    }
+                    catch (Exception)
+                    {
+                        HandlebarsDotNet.HandlebarsExtensions.WriteSafeString(writer, "");
+                    }   
+                    
                 }
             });
         }
