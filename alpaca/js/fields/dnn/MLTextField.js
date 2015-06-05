@@ -24,17 +24,12 @@
          */
         setup: function () {
 
-            if (this.data && Alpaca.isObject(this.data)) {
-             
+            if (this.data && Alpaca.isArray(this.data)) {             
                 this.olddata = this.data;
+            } else {
+                this.olddata = [];
             }
-
             this.base();
-
-            Alpaca.mergeObject(this.options, {
-                "fieldClass": "flag-"+this.culture
-            });
-
         },
         /**
          * @see Alpaca.Fields.TextField#getValue
@@ -45,17 +40,25 @@
             if (val === "") {
                 return [];
             }
-            
-            var o = {};
-            if (this.olddata && Alpaca.isObject(this.olddata)) {
-                $.each(this.olddata, function (key, value) {
-                    var v = Alpaca.copyOf(value);
-                    o[key] = v;
-                });
-            }
-            o[this.culture] = val;
-            return o;
-
+            var newData = [];
+            var exist = false;
+            $.each(this.olddata, function( index, value ) {
+                //alert( index + ": " + value );
+                var newValue;
+                if (value.culture == this.culture)
+                {
+                    newValue = { culture: Alpaca.copyOf(value.lang), text: val };
+                    exist = true;
+                }
+                else
+                {
+                    newValue = { culture : Alpaca.copyOf(value.lang),  text : Alpaca.copyOf(value.text) };
+                }
+                newData.push(newValue);
+            });
+            if (!exist)
+                newData.push({ culture: this.culture, text: val });
+            return newData;
         },
 
         /**
@@ -70,12 +73,12 @@
                 this.base("");
                 return;
             }
-            if (Alpaca.isObject(val)) {
-                var v = val[this.culture];
-                if (!v) {
-                    this.base("");
-                    return;
-                }
+            if (Alpaca.isArray(val)) {
+                var v = "";
+                $.each(this.olddata, function (index, value) {
+                    if (value.culture == this.culture)
+                        v = value.text;
+                });
                 this.base(v);
             }
             else
