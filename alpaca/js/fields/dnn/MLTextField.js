@@ -30,11 +30,11 @@
             }
 
             this.base();
-
+            /*
             Alpaca.mergeObject(this.options, {
                 "fieldClass": "flag-"+this.culture
             });
-
+            */
         },
         /**
          * @see Alpaca.Fields.TextField#getValue
@@ -93,13 +93,8 @@
         },
         handlePostRender: function (callback) {
             var self = this;
-
-            //var el = this.control;
             var el = this.getControlEl();
-
             $(this.control.get(0)).after('<img src="/images/Flags/'+this.culture+'.gif" />');
-           
-
             callback();
         },
         
