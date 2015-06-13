@@ -33,6 +33,7 @@ using Satrabel.OpenContent.Components.Json;
 using System.Web.WebPages;
 using System.Web;
 using Satrabel.OpenContent.Components.Handlebars;
+using DotNetNuke.Common.Utilities;
 
 #endregion
 
@@ -41,7 +42,7 @@ namespace Satrabel.OpenContent
 
     public partial class View : RazorModuleBase, IActionable
     {
-        
+
         protected override string RazorScriptFile
         {
             get
@@ -64,13 +65,14 @@ namespace Satrabel.OpenContent
             //base.OnPreRender(e);
             Boolean DemoData = false;
             string OutputString = GenerateOutput(out DemoData);
-            if (!string.IsNullOrEmpty(OutputString)){
+            if (!string.IsNullOrEmpty(OutputString))
+            {
                 Controls.Add(new LiteralControl(Server.HtmlDecode(OutputString)));
                 if (DemoData)
                     pDemo.Visible = true;
             }
             else
-            { 
+            {
                 pHelp.Visible = true;
             }
         }
@@ -78,6 +80,21 @@ namespace Satrabel.OpenContent
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
+
+            if (string.IsNullOrEmpty(RazorScriptFile))
+            {   
+                var module = ModuleController.Instance.GetModule(ModuleContext.ModuleId, ModuleContext.TabId, false);
+                var defaultModule = module.DefaultLanguageModule;
+                if (defaultModule != null)
+                {
+                    if (ModuleContext.ModuleId != defaultModule.ModuleID)
+                    {
+                        ModuleController.Instance.DeLocalizeModule(module);
+                        DataCache.ClearCache();
+                    }
+                }
+            }
+
             if (!(string.IsNullOrEmpty(RazorScriptFile)))
             {
                 //JavaScript.RequestRegistration() 
@@ -104,15 +121,20 @@ namespace Satrabel.OpenContent
                 {
                     if (!File.Exists(Server.MapPath(RazorScriptFile)))
                         Exceptions.ProcessModuleLoadException(this, new Exception(RazorScriptFile + " don't exist"));
+                    int mid = ModuleContext.ModuleId;
 
                     string dataJson = "";
                     OpenContentController ctrl = new OpenContentController();
-                    var struc = ctrl.GetFirstContent(ModuleContext.ModuleId);
+                    var struc = ctrl.GetFirstContent(mid);
                     if (struc != null)
                     {
                         dataJson = struc.Json;
                     }
                     else
+                    {
+
+                    }
+                    if (struc == null)
                     {
                         // demo data
                         var dataFilename = Path.GetDirectoryName(Server.MapPath(RazorScriptFile)) + "\\" + "data.json";
@@ -137,6 +159,10 @@ namespace Satrabel.OpenContent
 
                         //dynamic model = new ExpandoObject();
                         //model.Data = JsonUtils.JsonToDynamic(struc.Json);
+                        if (LocaleController.Instance.GetLocales(ModuleContext.PortalId).Count > 1)
+                        {
+                            dataJson = JsonUtils.SimplifyJson(dataJson, LocaleController.Instance.GetCurrentLocale(ModuleContext.PortalId).Code);
+                        }
 
                         dynamic model = JsonUtils.JsonToDynamic(dataJson);
                         model.Settings = JsonUtils.JsonToDynamic(Data);
@@ -170,7 +196,7 @@ namespace Satrabel.OpenContent
                             HandlebarsEngine hbEngine = new HandlebarsEngine();
                             return hbEngine.Execute(Page, ModuleContext.PortalSettings, RazorScriptFile, model);
                             //Controls.Add(new LiteralControl(Server.HtmlDecode(result)));
-                         }
+                        }
                     }
                     else
                     {
@@ -309,15 +335,18 @@ namespace Satrabel.OpenContent
             {
                 hlTempleteExchange.NavigateUrl = ModuleContext.EditUrl("ShareTemplate");
                 hlEditSettings.NavigateUrl = ModuleContext.EditUrl("EditSettings");
-                  hlTempleteExchange.Visible=true;
-                  hlEditSettings.Visible = true;
+                hlTempleteExchange.Visible = true;
+                hlEditSettings.Visible = true;
             }
-            if (TemplateDefined && ModuleContext.EditMode) {
+            if (TemplateDefined && ModuleContext.EditMode)
+            {
                 hlEditContent.NavigateUrl = ModuleContext.EditUrl("Edit");
                 hlEditContent.Visible = true;
                 hlEditContent2.NavigateUrl = ModuleContext.EditUrl("Edit");
                 hlEditContent2.Visible = true;
             }
+
+
         }
     }
 }

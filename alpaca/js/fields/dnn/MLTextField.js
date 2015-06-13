@@ -41,21 +41,30 @@
          */
         getValue: function () {
             var val = this.base();
-
+            var self = this;
+            /*
             if (val === "") {
                 return [];
             }
-            
+            */
+
             var o = {};
             if (this.olddata && Alpaca.isObject(this.olddata)) {
                 $.each(this.olddata, function (key, value) {
                     var v = Alpaca.copyOf(value);
-                    o[key] = v;
+                    if (key != self.culture) {
+                        o[key] = v;
+                    }
                 });
             }
-            o[this.culture] = val;
+            if (val != "") {
+                o[self.culture] = val;
+            }
+            if ($.isEmptyObject(o)) {
+                return "";
+            }
+            //o["_type"] = "languages";
             return o;
-
         },
 
         /**
@@ -95,6 +104,7 @@
             var self = this;
             var el = this.getControlEl();
             $(this.control.get(0)).after('<img src="/images/Flags/'+this.culture+'.gif" />');
+            //$(this.control.get(0)).after('<div style="background:#eee;margin-bottom: 18px;display:inline-block;padding-bottom:8px;"><span>' + this.culture + '</span></div>');
             callback();
         },
         

@@ -65,7 +65,7 @@
             var ConnectorClass = Alpaca.getConnectorClass("default");
             connector = new ConnectorClass("default");
             connector.servicesFramework = sf;
-            connector.culture = '<%=PortalSettings.CultureCode%>';
+            connector.culture = '<%=CurrentCulture%>';
 
             $.alpaca.Fields.DnnFileField = $.alpaca.Fields.FileField.extend({
                 setup: function () {
@@ -111,8 +111,8 @@
                         }
                         return false;
                     });
-                    $('#field1').dnnPanels();
-                    $('.dnnTooltip').dnnTooltip();
+                    //$('#field1').dnnPanels();
+                    //$('.dnnTooltip').dnnTooltip();
                 }
             });
         }).fail(function (xhr, result, status) {
