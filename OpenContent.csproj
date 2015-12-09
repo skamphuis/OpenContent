@@ -141,6 +141,9 @@
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Components\FilesStatus.cs" />
     <Compile Include="Components\FileUploadController.cs" />
+    <Compile Include="Components\Lucene\Config\FieldDTO.cs" />
+    <Compile Include="Components\Lucene\Config\IndexDTO.cs" />
+    <Compile Include="Components\Lucene\Config\ItemDTO.cs" />
     <Compile Include="Components\Lucene\SearchResults.cs" />
     <Compile Include="Components\Manifest\Manifest.cs" />
     <Compile Include="Components\ModelFactory.cs" />
@@ -497,6 +500,9 @@
     <Content Include="js\alpaca-1.5.8\lib\moment\CHANGELOG.md" />
     <Content Include="js\alpaca-1.5.8\lib\moment\LICENSE" />
     <Content Include="js\alpaca-1.5.8\lib\moment\README.md" />
+    <Content Include="js\alpaca-1.5.8\alpaca\web\alpaca.min.js.map">
+      <DependentUpon>alpaca.min.js</DependentUpon>
+    </Content>
     <None Include="Scripts\_references.js" />
     <Content Include="js\select2\i18n\az.js" />
     <Content Include="js\select2\i18n\bg.js" />

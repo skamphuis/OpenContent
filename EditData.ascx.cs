@@ -24,6 +24,7 @@ using System.Globalization;
 using DotNetNuke.Common.Utilities;
 using Satrabel.OpenContent.Components.Json;
 using Satrabel.OpenContent.Components.Manifest;
+using Satrabel.OpenContent.Components.Lucene.Config;
 
 #endregion
 
@@ -172,6 +173,12 @@ namespace Satrabel.OpenContent
                     Index = manifest.Index;
                 }
             }
+            IndexDTO indexConfig = null;
+            if (Index)
+            {
+                indexConfig = OpenContentUtils.GetIndexConfig(settings.Template);
+            }
+
             if (template != null && template.IsListTemplate)
             {
                 JArray lst = null;
@@ -200,7 +207,7 @@ namespace Satrabel.OpenContent
                             Html = "",
                             Json = json.ToString()
                         };
-                        ctrl.AddContent(data, Index);
+                        ctrl.AddContent(data, Index, indexConfig);
                     }
                 }
             }
@@ -231,7 +238,7 @@ namespace Satrabel.OpenContent
                             Html = "",
                             Json = txtSource.Text
                         };
-                        ctrl.AddContent(data, Index);
+                        ctrl.AddContent(data, Index, indexConfig);
                     }
                     else
                     {
@@ -239,7 +246,7 @@ namespace Satrabel.OpenContent
                         data.LastModifiedByUserId = UserInfo.UserID;
                         data.LastModifiedOnDate = DateTime.Now;
                         data.Json = txtSource.Text;
-                        ctrl.UpdateContent(data, Index);
+                        ctrl.UpdateContent(data, Index, indexConfig);
                     }
 
                     if (json["ModuleTitle"] != null && json["ModuleTitle"].Type == JTokenType.String)

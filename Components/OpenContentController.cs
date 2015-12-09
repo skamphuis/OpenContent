@@ -16,12 +16,13 @@ using Newtonsoft.Json.Linq;
 using Satrabel.OpenContent.Components.Json;
 using Satrabel.OpenContent.Components.Lucene;
 using Satrabel.OpenContent.Components.Lucene.Index;
+using Satrabel.OpenContent.Components.Lucene.Config;
 
 namespace Satrabel.OpenContent.Components
 {
     public class OpenContentController
     {
-        public void AddContent(OpenContentInfo Content, bool Index)
+        public void AddContent(OpenContentInfo Content, bool Index, IndexDTO IndexConfig)
         {
             OpenContentVersion ver = new OpenContentVersion()
             {
@@ -105,7 +106,7 @@ namespace Satrabel.OpenContent.Components
             return Content;
         }
 
-        public void UpdateContent(OpenContentInfo Content, bool Index)
+        public void UpdateContent(OpenContentInfo Content, bool Index, IndexDTO IndexConfig)
         {
             OpenContentVersion ver = new OpenContentVersion()
             {

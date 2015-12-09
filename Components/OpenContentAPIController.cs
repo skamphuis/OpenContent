@@ -299,7 +299,7 @@ namespace Satrabel.OpenContent.Components
                 {
                     return Request.CreateResponse(HttpStatusCode.Unauthorized);
                 }
-
+                var indexConfig = OpenContentUtils.GetIndexConfig(settings.Template);
                 if (content == null)
                 {
                     content = new OpenContentInfo()
@@ -313,7 +313,8 @@ namespace Satrabel.OpenContent.Components
                         LastModifiedOnDate = DateTime.Now,
                         Html = "",
                     };
-                    ctrl.AddContent(content, Index);
+                    
+                    ctrl.AddContent(content, Index, indexConfig);
                 }
                 else
                 {
@@ -321,7 +322,7 @@ namespace Satrabel.OpenContent.Components
                     content.Json = json["form"].ToString();
                     content.LastModifiedByUserId = UserInfo.UserID;
                     content.LastModifiedOnDate = DateTime.Now;
-                    ctrl.UpdateContent(content, Index);
+                    ctrl.UpdateContent(content, Index, indexConfig);
                 }
                 if (json["form"]["ModuleTitle"] != null && json["form"]["ModuleTitle"].Type == JTokenType.String)
                 {
