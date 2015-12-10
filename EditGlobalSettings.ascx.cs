@@ -22,6 +22,8 @@ using DotNetNuke.Security.Roles;
 using Satrabel.OpenContent.Components.Lucene;
 using Satrabel.OpenContent.Components.Lucene.Index;
 using Newtonsoft.Json.Linq;
+using Satrabel.OpenContent.Components.Manifest;
+using Satrabel.OpenContent.Components.Lucene.Config;
 
 #endregion
 
@@ -81,13 +83,31 @@ namespace Satrabel.OpenContent
 
         protected void bIndex_Click(object sender, EventArgs e)
         {
+            TemplateManifest template = null;
+            OpenContentSettings settings = new OpenContentSettings(Settings);
+            bool Index = false;
+            if (settings.TemplateAvailable)
+            {
+                Manifest manifest = null;
+                OpenContentUtils.GetTemplate(settings, out manifest, out template);
+                if (manifest != null)
+                {
+                    Index = manifest.Index;
+                }
+            }
+            FieldConfig indexConfig = null;
+            if (Index)
+            {
+                indexConfig = OpenContentUtils.GetIndexConfig(settings.Template);
+            }
+
             using (LuceneController lc = LuceneController.Instance)
             {
                 lc.DeleteAll();
                 OpenContentController occ = new OpenContentController();
                 foreach (var item in occ.GetContents(ModuleId))
                 {
-                    lc.Add(item);
+                    lc.Add(item, indexConfig);
                 }
                 lc.Commit();
                 lc.OptimizeSearchIndex(true);

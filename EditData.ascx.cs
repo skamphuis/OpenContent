@@ -173,7 +173,7 @@ namespace Satrabel.OpenContent
                     Index = manifest.Index;
                 }
             }
-            IndexDTO indexConfig = null;
+            FieldConfig indexConfig = null;
             if (Index)
             {
                 indexConfig = OpenContentUtils.GetIndexConfig(settings.Template);

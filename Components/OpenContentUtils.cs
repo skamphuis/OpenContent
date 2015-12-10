@@ -527,16 +527,16 @@ namespace Satrabel.OpenContent.Components
         }
 
 
-        internal static IndexDTO GetIndexConfig(FolderUri folder)
+        internal static FieldConfig GetIndexConfig(FolderUri folder)
         {
             try
             {
-                IndexDTO indexConfig = null;
+                FieldConfig indexConfig = null;
                 var file = new FileUri(folder.UrlFolder, "index.json");
                 if (file.FileExists)
                 {
                     string content = File.ReadAllText(file.PhysicalFilePath);
-                    indexConfig = JsonConvert.DeserializeObject<IndexDTO>(content);
+                    indexConfig = JsonConvert.DeserializeObject<FieldConfig>(content);
                 }
                 return indexConfig;
             }
