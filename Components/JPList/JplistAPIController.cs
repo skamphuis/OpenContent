@@ -20,6 +20,9 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 using Satrabel.OpenContent.Components.Manifest;
+using Lucene.Net.Search;
+using Lucene.Net.Index;
+using Lucene.Net.QueryParsers;
 
 //using Satrabel.OpenContent.Components;
 //using Satrabel.OpenContent.Components.TemplateHelpers;
@@ -84,13 +87,15 @@ namespace Satrabel.OpenContent.Components.JPList
                     }
                     //JArray json = new JArray();
                     var jpListQuery = BuildJpListQuery(req.StatusLst);
-                    string luceneQuery = BuildLuceneQuery(jpListQuery);
+                    //string luceneQuery = BuildLuceneQuery(jpListQuery);
+                    Query luceneQuery = BuildLuceneQuery2(jpListQuery);
                     if (jpListQuery.Sorts.Any())
                     {
                         var sort = jpListQuery.Sorts.First();
                         luceneSort = sort.path + " " + sort.order;
                     }
-                    SearchResults docs = LuceneController.Instance.Search(module.ModuleID.ToString(), "Title", luceneQuery, luceneFilter, luceneSort, jpListQuery.Pagination.number, jpListQuery.Pagination.currentPage);
+                    var indexConfig = OpenContentUtils.GetIndexConfig(settings.Template);
+                    SearchResults docs = LuceneController.Instance.Search(module.ModuleID.ToString(), "Title", luceneFilter, luceneQuery, luceneSort, jpListQuery.Pagination.number, jpListQuery.Pagination.currentPage, indexConfig);
                     int total = docs.ToalResults;
                     OpenContentController ctrl = new OpenContentController();
                     var dataList = new List<OpenContentInfo>();
@@ -248,6 +253,61 @@ namespace Satrabel.OpenContent.Components.JPList
                 }
             }
             return queryStr;
+        }
+
+        private Query BuildLuceneQuery2(JpListQueryDTO jpListQuery)
+        {
+            
+            if (jpListQuery.Filters.Any())
+            {
+                BooleanQuery query = new BooleanQuery();
+                foreach (FilterDTO f in jpListQuery.Filters)
+                {
+                    if (f.pathGroup != null && f.pathGroup.Any()) //group is bv multicheckbox, vb categories where(categy="" OR category="")
+                    {
+                        //string pathStr = "";
+                        var groupQuery = new BooleanQuery();
+                        foreach (var p in f.pathGroup)
+                        {
+                            //pathStr += (string.IsNullOrEmpty(pathStr) ? "" : " OR ") + f.name + ":" + p;
+                            var termQuery = new TermQuery(new Term(f.name, p));
+                            groupQuery.Add(termQuery, Occur.SHOULD); // or
+                        }
+
+                        //queryStr += "+" + "(" + pathStr + ")";
+                        query.Add(groupQuery, Occur.MUST); //and
+                    }
+                    else
+                    {
+                        var names = f.names;
+                        //string pathStr = "";
+                        var groupQuery = new BooleanQuery();
+                        foreach (var n in names)
+                        {
+                            if (!string.IsNullOrEmpty(f.path))
+                            {
+                                //pathStr += (string.IsNullOrEmpty(pathStr) ? "" : " OR ") + n + ":" + f.path;  //for dropdownlists; value is keyword => never partial search
+                                var termQuery = new TermQuery(new Term(n, f.path));
+                                groupQuery.Add(termQuery, Occur.SHOULD); // or
+                            }
+                            else
+                            {
+                                //pathStr += (string.IsNullOrEmpty(pathStr) ? "" : " OR ") + n + ":" + f.value + "*";   //textbox
+                                var query1 = LuceneController.ParseQuery(n + ":" + f.value + "*", "Title");                                
+                                groupQuery.Add(query1, Occur.SHOULD); // or
+                            }
+                        }
+                        query.Add(groupQuery, Occur.MUST); //and
+                    }
+                }
+                return query;
+            }
+            else
+            {
+                Query query = new MatchAllDocsQuery();
+                return query;
+            }
+            
         }
 
         #endregion

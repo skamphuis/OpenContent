@@ -803,10 +803,11 @@ namespace Satrabel.OpenContent
                 bool useLucene = info.Manifest.Index;
                 if (useLucene)
                 {
+                    var indexConfig = OpenContentUtils.GetIndexConfig(settings.Template);
                     string luceneFilter = settings.LuceneFilter;
                     string luceneSort = settings.LuceneSort;
                     int? luceneMaxResults = settings.LuceneMaxResults;
-                    SearchResults docs = LuceneController.Instance.Search(_info.ModuleId.ToString(), "Title", "", luceneFilter, luceneSort, (luceneMaxResults.HasValue ? luceneMaxResults.Value : 100), 0);
+                    SearchResults docs = LuceneController.Instance.Search(_info.ModuleId.ToString(), "Title", "", luceneFilter, luceneSort, (luceneMaxResults.HasValue ? luceneMaxResults.Value : 100), 0, indexConfig);
                     int total = docs.ToalResults;
                     var dataList = new List<OpenContentInfo>();
                     foreach (var item in docs.ids)
@@ -1121,7 +1122,7 @@ namespace Satrabel.OpenContent
                 var jsfilename = new FileUri(Path.ChangeExtension(template.FilePath, "js"));
                 if (jsfilename.FileExists)
                 {
-                    ClientResourceManager.RegisterScript(Page, Page.ResolveUrl(jsfilename.UrlFilePath), FileOrder.Js.DefaultPriority);
+                    ClientResourceManager.RegisterScript(Page, Page.ResolveUrl(jsfilename.UrlFilePath), FileOrder.Js.DefaultPriority+100);
                 }
                 ClientResourceManager.RegisterScript(Page, Page.ResolveUrl("~/DesktopModules/OpenContent/js/opencontent.js"), FileOrder.Js.DefaultPriority);
 
