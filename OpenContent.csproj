@@ -142,7 +142,12 @@
     <Compile Include="Components\FilesStatus.cs" />
     <Compile Include="Components\FileUploadController.cs" />
     <Compile Include="Components\Infrastructure\DefaultDatasource.cs" />
-    <Compile Include="Components\Infrastructure\IDatasource.cs" />
+    <Compile Include="Components\Infrastructure\BaseClasses\IDatasource.cs" />
+    <Compile Include="Components\Infrastructure\BaseClasses\IAggregate.cs" />
+    <Compile Include="Components\Infrastructure\BaseClasses\DomainEvent.cs" />
+    <Compile Include="Components\Infrastructure\BaseClasses\IRepository.cs" />
+    <Compile Include="Components\Infrastructure\BaseClasses\Message.cs" />
+    <Compile Include="Components\Infrastructure\DefaultRepository.cs" />
     <Compile Include="Components\Lucene\Config\FieldConfig.cs" />
     <Compile Include="Components\Lucene\Config\ObjectConfig.cs" />
     <Compile Include="Components\Lucene\Config\ItemConfig.cs" />
@@ -711,7 +716,10 @@
   <ItemGroup>
     <Content Include="App_LocalResources\EditGlobalSettings.ascx.resx" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Components\CommandStack\" />
+    <Folder Include="Components\QueryStack\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
