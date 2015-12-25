@@ -22,6 +22,7 @@ using Satrabel.OpenContent.Components;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using DotNetNuke.Common.Utilities;
+using Satrabel.OpenContent.Components.Infrastructure;
 using Satrabel.OpenContent.Components.Json;
 using Satrabel.OpenContent.Components.Manifest;
 using Satrabel.OpenContent.Components.Lucene.Config;
@@ -52,7 +53,7 @@ namespace Satrabel.OpenContent
         private void ddlVersions_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             OpenContentInfo data = ctrl.GetFirstContent(ModuleId);
             if (data != null)
             {
@@ -64,6 +65,7 @@ namespace Satrabel.OpenContent
             }
 
         }
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -72,7 +74,6 @@ namespace Satrabel.OpenContent
                 InitEditor();
             }
         }
-
 
         private void InitEditor()
         {
@@ -86,7 +87,7 @@ namespace Satrabel.OpenContent
             switch (selectedDataType)
             {
                 case cData:
-                    OpenContentController ctrl = new OpenContentController();
+                    IDatasource ctrl = Factories.GetDatasource();
                     TemplateManifest template = null;
                     OpenContentSettings settings = this.OpenContentSettings();
 
@@ -156,7 +157,7 @@ namespace Satrabel.OpenContent
 
         private void SaveData()
         {
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             TemplateManifest template = null;
             OpenContentSettings settings = this.OpenContentSettings();
             bool index = false;

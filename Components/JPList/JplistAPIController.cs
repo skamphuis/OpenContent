@@ -18,6 +18,7 @@ using Satrabel.OpenContent.Components.Manifest;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
+using Satrabel.OpenContent.Components.Infrastructure;
 
 
 namespace Satrabel.OpenContent.Components.JPList
@@ -86,7 +87,7 @@ namespace Satrabel.OpenContent.Components.JPList
                     var indexConfig = OpenContentUtils.GetIndexConfig(settings.Template.Key.TemplateDir);
                     SearchResults docs = LuceneController.Instance.Search(module.ModuleID.ToString(), "Title", luceneFilter, luceneQuery, luceneSort, jpListQuery.Pagination.number, jpListQuery.Pagination.currentPage, indexConfig);
                     int total = docs.ToalResults;
-                    OpenContentController ctrl = new OpenContentController();
+                    IDatasource ctrl = Factories.GetDatasource();
                     var dataList = new List<OpenContentInfo>();
                     foreach (var item in docs.ids)
                     {

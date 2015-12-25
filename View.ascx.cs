@@ -60,7 +60,6 @@ namespace Satrabel.OpenContent
 
         private int _itemId = Null.NullInteger;
         private readonly RenderInfo _renderinfo = new RenderInfo();
-        private IDatasource _datasource ;
         private OpenContentSettings _settings;
 
         #region Event Handlers
@@ -99,8 +98,6 @@ namespace Satrabel.OpenContent
 
             if (_settings == null)
                 _settings = ModuleContext.OpenContentSettings();
-
-            _datasource = new OpenContentController(); //in future we might set here another datasource, if the templates dictates us to do so.
         }
 
         protected override void OnLoad(EventArgs e)
@@ -756,7 +753,7 @@ namespace Satrabel.OpenContent
         {
             info.ResetData();
 
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             var struc = ctrl.GetFirstContent(info.ModuleId);
             if (struc != null)
             {
@@ -767,7 +764,7 @@ namespace Satrabel.OpenContent
         public void GetDataList(RenderInfo info, OpenContentSettings settings, bool clientSide)
         {
             info.ResetData();
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             IEnumerable<OpenContentInfo> dataList;
             if (clientSide)
             {
@@ -791,7 +788,7 @@ namespace Satrabel.OpenContent
         public void GetDetailData(RenderInfo info, OpenContentSettings settings)
         {
             info.ResetData();
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             var struc = ctrl.GetContent(info.DetailItemId);
             if (struc != null && struc.ModuleId == info.ModuleId)
             {
@@ -841,7 +838,7 @@ namespace Satrabel.OpenContent
         internal bool GetOtherModuleDemoData(RenderInfo info, OpenContentSettings settings)
         {
             info.ResetData();
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             var struc = ctrl.GetFirstContent(info.ModuleId);
             if (struc != null)
             {

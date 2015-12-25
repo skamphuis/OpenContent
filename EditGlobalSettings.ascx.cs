@@ -22,6 +22,7 @@ using DotNetNuke.Security.Roles;
 using Satrabel.OpenContent.Components.Lucene;
 using Satrabel.OpenContent.Components.Lucene.Index;
 using Newtonsoft.Json.Linq;
+using Satrabel.OpenContent.Components.Infrastructure;
 using Satrabel.OpenContent.Components.Manifest;
 using Satrabel.OpenContent.Components.Lucene.Config;
 
@@ -99,7 +100,7 @@ namespace Satrabel.OpenContent
             using (LuceneController lc = LuceneController.Instance)
             {
                 lc.DeleteAll();
-                OpenContentController occ = new OpenContentController();
+                IDatasource occ = Factories.GetDatasource();
                 foreach (var item in occ.GetContents(ModuleId))
                 {
                     lc.Add(item, indexConfig);
@@ -112,7 +113,7 @@ namespace Satrabel.OpenContent
 
         protected void bGenerate_Click(object sender, EventArgs e)
         {
-            OpenContentController occ = new OpenContentController();
+            IDatasource occ = Factories.GetDatasource();
 
             var oc = occ.GetFirstContent(ModuleId);
             if (oc != null)

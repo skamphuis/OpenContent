@@ -21,6 +21,7 @@ using DotNetNuke.Security;
 using Satrabel.OpenContent.Components.Json;
 using DotNetNuke.Entities.Modules;
 using System.Collections.Generic;
+using Satrabel.OpenContent.Components.Infrastructure;
 using Satrabel.OpenContent.Components.Lucene;
 using Satrabel.OpenContent.Components.Manifest;
 
@@ -123,7 +124,7 @@ namespace Satrabel.OpenContent.Components
 
         private OpenContentInfo GetContent(int moduleId, bool listMode, int id)
         {
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             if (listMode)
             {
                 if (id > 0)
@@ -268,7 +269,7 @@ namespace Satrabel.OpenContent.Components
 
                 bool listMode = templateManifest != null && templateManifest.IsListTemplate;
                 int createdByUserid = -1;
-                OpenContentController ctrl = new OpenContentController();
+                IDatasource ctrl = Factories.GetDatasource();
                 OpenContentInfo content = null;
                 if (listMode)
                 {
@@ -355,7 +356,7 @@ namespace Satrabel.OpenContent.Components
                 string editRole = manifest == null ? "" : manifest.EditRole;
                 bool listMode = templateManifest != null && templateManifest.IsListTemplate;
                 int CreatedByUserid = -1;
-                OpenContentController ctrl = new OpenContentController();
+                IDatasource ctrl = Factories.GetDatasource();
                 OpenContentInfo content = null;
                 if (listMode)
                 {
@@ -433,7 +434,7 @@ namespace Satrabel.OpenContent.Components
             List<LookupResultDTO> res = new List<LookupResultDTO>();
             try
             {
-                OpenContentController ctrl = new OpenContentController();
+                IDatasource ctrl = Factories.GetDatasource();
                 if (listMode)
                 {
                     var items = ctrl.GetContents(req.moduleid);

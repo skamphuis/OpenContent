@@ -20,6 +20,8 @@ using System;
 using DotNetNuke.Services.Search.Entities;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using DotNetNuke.Services.Social.Notifications.Data;
+using Satrabel.OpenContent.Components.Infrastructure;
 
 namespace Satrabel.OpenContent.Components
 {
@@ -29,7 +31,7 @@ namespace Satrabel.OpenContent.Components
         public string ExportModule(int ModuleID)
         {
             string xml = "";
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             var content = ctrl.GetFirstContent(ModuleID);
             if ((content != null))
             {
@@ -41,7 +43,7 @@ namespace Satrabel.OpenContent.Components
         }
         public void ImportModule(int ModuleID, string Content, string Version, int UserID)
         {
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             XmlNode xml = Globals.GetContent(Content, "opencontent");
             var content = new OpenContentInfo()
             {
@@ -60,7 +62,7 @@ namespace Satrabel.OpenContent.Components
         public override IList<SearchDocument> GetModifiedSearchDocuments(ModuleInfo modInfo, DateTime beginDateUtc)
         {
             var searchDocuments = new List<SearchDocument>();
-            OpenContentController ctrl = new OpenContentController();
+            IDatasource ctrl = Factories.GetDatasource();
             var content = ctrl.GetFirstContent(modInfo.ModuleID);
             if (content != null &&
                 (content.LastModifiedOnDate.ToUniversalTime() > beginDateUtc &&
