@@ -141,12 +141,12 @@
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Components\FilesStatus.cs" />
     <Compile Include="Components\FileUploadController.cs" />
-    <Compile Include="Components\Infrastructure\DefaultDatasource.cs" />
     <Compile Include="Components\Infrastructure\BaseClasses\IDatasource.cs" />
     <Compile Include="Components\Infrastructure\BaseClasses\IAggregate.cs" />
     <Compile Include="Components\Infrastructure\BaseClasses\DomainEvent.cs" />
     <Compile Include="Components\Infrastructure\BaseClasses\IRepository.cs" />
     <Compile Include="Components\Infrastructure\BaseClasses\Message.cs" />
+    <Compile Include="Components\Infrastructure\DatasourceFactory.cs" />
     <Compile Include="Components\Infrastructure\DefaultRepository.cs" />
     <Compile Include="Components\Lucene\Config\FieldConfig.cs" />
     <Compile Include="Components\Lucene\Config\ObjectConfig.cs" />
