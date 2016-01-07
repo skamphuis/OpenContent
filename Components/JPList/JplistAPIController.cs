@@ -14,11 +14,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using DotNetNuke.Entities.Portals;
+using DotNetNuke.Security.Permissions;
 using Satrabel.OpenContent.Components.Manifest;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Satrabel.OpenContent.Components.Infrastructure;
+using Satrabel.OpenContent.Components.Lucene.Config;
+using Lucene.Net.Documents;
 
 
 namespace Satrabel.OpenContent.Components.JPList
@@ -49,7 +53,7 @@ namespace Satrabel.OpenContent.Components.JPList
                 }
                 var manifest = settings.Template.Manifest;
                 var templateManifest = settings.Template;
-               
+
                 TemplateFiles files = null;
                 if (templateManifest != null)
                 {
@@ -61,31 +65,29 @@ namespace Satrabel.OpenContent.Components.JPList
                 bool listMode = templateManifest != null && templateManifest.IsListTemplate;
                 if (listMode)
                 {
-                    string luceneFilter = "";
-                    string luceneSort = "";
-                    if (!string.IsNullOrEmpty(settings.Data))
+                    var indexConfig = OpenContentUtils.GetIndexConfig(settings.Template.Key.TemplateDir);
+                    QueryDefinition def = new QueryDefinition(indexConfig);
+                    //BooleanQuery luceneFilter = null;
+                    
+                    if (!string.IsNullOrEmpty(settings.Query))
                     {
-                        var set = JObject.Parse(settings.Data);
-                        if (set["LuceneFilter"] != null)
-                        {
-                            luceneFilter = set["LuceneFilter"].ToString();
-                        }
-                        if (set["LuceneSort"] != null)
-                        {
-                            luceneSort = set["LuceneSort"].ToString();
-                        }
+                        var query = JObject.Parse(settings.Query);
+                        def.Build(query, PortalSettings.UserMode != PortalSettings.Mode.Edit);
                     }
-                    //JArray json = new JArray();
+                    
                     var jpListQuery = BuildJpListQuery(req.StatusLst);
-                    //string luceneQuery = BuildLuceneQuery(jpListQuery);
-                    Query luceneQuery = BuildLuceneQuery2(jpListQuery);
+                    def.Query = BuildLuceneQuery2(jpListQuery, indexConfig);
                     if (jpListQuery.Sorts.Any())
                     {
                         var sort = jpListQuery.Sorts.First();
-                        luceneSort = sort.path + " " + sort.order;
+                        string luceneSort = sort.path + " " + sort.order;
+                        def.BuildSort(luceneSort);
                     }
-                    var indexConfig = OpenContentUtils.GetIndexConfig(settings.Template.Key.TemplateDir);
-                    SearchResults docs = LuceneController.Instance.Search(module.ModuleID.ToString(), "Title", luceneFilter, luceneQuery, luceneSort, jpListQuery.Pagination.number, jpListQuery.Pagination.currentPage, indexConfig);
+                    if (jpListQuery.Pagination.number > 0)
+                        def.PageSize = jpListQuery.Pagination.number;
+                    def.PageIndex = jpListQuery.Pagination.currentPage;
+
+                    SearchResults docs = LuceneController.Instance.Search(module.ModuleID.ToString(), "Title", def);
                     int total = docs.ToalResults;
                     IDatasource ctrl = Factories.GetDatasource();
                     var dataList = new List<OpenContentInfo>();
@@ -97,8 +99,8 @@ namespace Satrabel.OpenContent.Components.JPList
                             dataList.Add(content);
                         }
                     }
-                    ModelFactory mf = new ModelFactory(dataList, settings.Data, settings.Template.Uri().PhysicalFullDirectory, manifest, files, ActiveModule, PortalSettings);
-                    var model = mf.GetModelAsJson(true);  
+                    ModelFactory mf = new ModelFactory(dataList, settings.Data, settings.Template.Uri().PhysicalFullDirectory, manifest, templateManifest, files, ActiveModule, PortalSettings, settings.TabId);
+                    var model = mf.GetModelAsJson(true);
                     var res = new ResultDTO()
                     {
                         data = model,
@@ -118,6 +120,7 @@ namespace Satrabel.OpenContent.Components.JPList
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
+
 
         #region Private Methods
 
@@ -245,9 +248,8 @@ namespace Satrabel.OpenContent.Components.JPList
             return queryStr;
         }
 
-        private Query BuildLuceneQuery2(JpListQueryDTO jpListQuery)
+        private Query BuildLuceneQuery2(JpListQueryDTO jpListQuery, FieldConfig indexConfig)
         {
-            
             if (jpListQuery.Filters.Any())
             {
                 BooleanQuery query = new BooleanQuery();
@@ -255,35 +257,34 @@ namespace Satrabel.OpenContent.Components.JPList
                 {
                     if (f.pathGroup != null && f.pathGroup.Any()) //group is bv multicheckbox, vb categories where(categy="" OR category="")
                     {
-                        //string pathStr = "";
                         var groupQuery = new BooleanQuery();
                         foreach (var p in f.pathGroup)
                         {
-                            //pathStr += (string.IsNullOrEmpty(pathStr) ? "" : " OR ") + f.name + ":" + p;
                             var termQuery = new TermQuery(new Term(f.name, p));
                             groupQuery.Add(termQuery, Occur.SHOULD); // or
                         }
-
-                        //queryStr += "+" + "(" + pathStr + ")";
                         query.Add(groupQuery, Occur.MUST); //and
                     }
                     else
                     {
                         var names = f.names;
-                        //string pathStr = "";
                         var groupQuery = new BooleanQuery();
                         foreach (var n in names)
                         {
+
                             if (!string.IsNullOrEmpty(f.path))
                             {
-                                //pathStr += (string.IsNullOrEmpty(pathStr) ? "" : " OR ") + n + ":" + f.path;  //for dropdownlists; value is keyword => never partial search
+                                //for dropdownlists; value is keyword => never partial search
                                 var termQuery = new TermQuery(new Term(n, f.path));
                                 groupQuery.Add(termQuery, Occur.SHOULD); // or
                             }
                             else
                             {
-                                //pathStr += (string.IsNullOrEmpty(pathStr) ? "" : " OR ") + n + ":" + f.value + "*";   //textbox
-                                var query1 = LuceneController.ParseQuery(n + ":" + f.value + "*", "Title");                                
+                                //textbox
+                                var field = indexConfig.Fields[n];
+                                bool ml = field != null && field.MultiLanguage;
+                                string fieldName = ml ? n + "." + DnnUtils.GetCurrentCultureCode() : n;
+                                var query1 = LuceneController.ParseQuery(fieldName + ":" + f.value + "*", "Title");
                                 groupQuery.Add(query1, Occur.SHOULD); // or
                             }
                         }
@@ -297,9 +298,7 @@ namespace Satrabel.OpenContent.Components.JPList
                 Query query = new MatchAllDocsQuery();
                 return query;
             }
-            
         }
-
         #endregion
     }
 }

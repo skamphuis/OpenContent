@@ -76,14 +76,14 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
             }
             else if (token is JArray)
             {
-                AddArray(doc, prefix, token as JArray, field.Items);
+                AddArray(doc, prefix, token as JArray, field == null ? null : field.Items);
             }
             else if (token is JValue)
             {
                 JValue value = token as JValue;
                 IConvertible convertible = value as IConvertible;
-                bool index = true;
-                bool sort = true;
+                bool index = false;
+                bool sort = false;
                 if (field != null)
                 {
                     index = field.Index;
@@ -103,6 +103,29 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
                         if (index || sort)
                         {
                             doc.Add(new NumericField(prefix, Field.Store.NO, true).SetLongValue(((DateTime)value.Value).Ticks));
+                            
+                            //doc.Add(new Field(prefix, DateTools.DateToString((DateTime)value.Value, DateTools.Resolution.SECOND), Field.Store.NO, Field.Index.NOT_ANALYZED));
+
+                            /*
+                            if (field != null ){
+                                if (field.IndexType == "datetime")
+                                {
+                                    doc.Add(new Field(prefix, DateTools.DateToString((DateTime)value.Value, DateTools.Resolution.SECOND), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                                }
+                                else if (field.IndexType == "date")
+                                {
+                                    doc.Add(new Field(prefix, DateTools.DateToString((DateTime)value.Value, DateTools.Resolution.DAY), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                                }
+                                else if (field.IndexType == "time")
+                                {
+                                    doc.Add(new Field(prefix, DateTools.DateToString((DateTime)value.Value, DateTools.Resolution.SECOND).Substring(8), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                                }
+                            }
+                            else
+                            {
+                                doc.Add(new Field(prefix, DateTools.DateToString((DateTime)value.Value, DateTools.Resolution.SECOND), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                            }
+                            */
                         }
                         break;
 
@@ -139,7 +162,7 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
 
                     case JTokenType.String:
 
-                        if (field != null && field.Type == "key")
+                        if (field != null && field.IndexType == "key")
                         {
                             doc.Add(new Field(prefix, value.Value.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
                         }
@@ -203,9 +226,13 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
             foreach (JProperty property in obj.Properties())
             {
                 FieldConfig f = null;
-                if (field.Fields.ContainsKey(property.Name))
+                if (field != null && field.Fields != null && field.Fields.ContainsKey(property.Name))
                 {
                     f = field.Fields[property.Name];
+                }
+                else if (field != null && field.MultiLanguage)
+                {
+                    f = field;
                 }
                 Add(doc, MakePrefix(prefix, property.Name), property.Value, f);
             }

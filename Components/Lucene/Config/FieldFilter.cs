@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Text;
 
 namespace Satrabel.OpenContent.Components.Lucene.Config
 {
-    public class ObjectConfig
+    public class FieldFilter
     {
-        public Dictionary<string, FieldConfig> fields { get; set; }
+       
     }
 }
