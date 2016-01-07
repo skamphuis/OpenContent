@@ -33,7 +33,6 @@ namespace Satrabel.OpenContent.Components
     [SupportedModules("OpenContent")]
     public class OpenContentAPIController : DnnApiController
     {
-        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(OpenContentAPIController));
         public string BaseDir
         {
             get
@@ -99,7 +98,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -184,7 +183,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -210,7 +209,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -297,7 +296,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -357,7 +356,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -388,7 +387,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -452,7 +451,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -496,7 +495,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
@@ -520,7 +519,7 @@ namespace Satrabel.OpenContent.Components
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }

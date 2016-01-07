@@ -30,8 +30,6 @@ namespace Satrabel.OpenContent.Components.JPList
     [SupportedModules("OpenContent")]
     public class JplistAPIController : DnnApiController
     {
-        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(JplistAPIController));
-
         [ValidateAntiForgeryToken]
         [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.View)]
         [HttpPost]
@@ -116,7 +114,7 @@ namespace Satrabel.OpenContent.Components.JPList
             }
             catch (Exception exc)
             {
-                Logger.Error(exc);
+                Log.Logger.Error(exc);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
             }
         }
