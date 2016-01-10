@@ -298,8 +298,8 @@ namespace Satrabel.OpenContent
 
                 if (templateDefined && listMode)
                 {
-                    bool queryAvailable = settings.Template.QueryAvailable();
-                    if (queryAvailable)
+                    //bool queryAvailable = settings.Template.QueryAvailable();
+                    //if (queryAvailable)
                     {
                         actions.Add(ModuleContext.GetNextActionID(),
                             Localization.GetString("EditQuery.Action", LocalResourceFile),
@@ -925,15 +925,15 @@ namespace Satrabel.OpenContent
                         ModelFactory mf = new ModelFactory(dataJson, settingsJson, physicalTemplateFolder, _renderinfo.Template.Manifest, _renderinfo.Template, files, ModuleContext.Configuration, ModuleContext.PortalSettings, _settings.TabId);
                         dynamic model = mf.GetModelAsDynamic();
 
-                        if (!string.IsNullOrEmpty(_renderinfo.Template.Manifest.DetailTitle))
+                        if (!string.IsNullOrEmpty(_renderinfo.Template.Manifest.DetailMetaTitle))
                         {
                             HandlebarsEngine hbEngine = new HandlebarsEngine();
-                            Page.Title = hbEngine.Execute(_renderinfo.Template.Manifest.DetailTitle, model);
+                            Page.Title = hbEngine.Execute(_renderinfo.Template.Manifest.DetailMetaTitle, model);
                         }
-                        if (!string.IsNullOrEmpty(_renderinfo.Template.Manifest.DetailDescription))
+                        if (!string.IsNullOrEmpty(_renderinfo.Template.Manifest.DetailMetaDescription))
                         {
                             HandlebarsEngine hbEngine = new HandlebarsEngine();
-                            PageUtils.SetPageDescription(Page, hbEngine.Execute(_renderinfo.Template.Manifest.DetailDescription, model));
+                            PageUtils.SetPageDescription(Page, hbEngine.Execute(_renderinfo.Template.Manifest.DetailMetaDescription, model));
                         }
                         if (!string.IsNullOrEmpty(_renderinfo.Template.Manifest.DetailMeta))
                         {
