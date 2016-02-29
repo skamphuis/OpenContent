@@ -27,6 +27,18 @@ namespace Satrabel.OpenContent.Components.Alpaca
                 Title = "MaxResults",
                 Type = "number"
             });
+            // Default no results
+            newSchema.Properties.Add("DefaultNoResults", new SchemaConfig()
+            {
+                Title = "Default No Results",
+                Type = "boolean"
+            });
+            // Remove current item
+            newSchema.Properties.Add("ExcludeCurrentItem", new SchemaConfig()
+            {
+                Title = "Exclude Current Item",
+                Type = "boolean"
+            });
             // Filter
             SchemaConfig newSchemaFilter = new SchemaConfig(true)
             {
@@ -53,12 +65,15 @@ namespace Satrabel.OpenContent.Components.Alpaca
             foreach (var prop in schemaConfig.Properties)
             {
                 var opts = optionsConfig.Fields.ContainsKey(prop.Key) ? optionsConfig.Fields[prop.Key] : null;
-                if (prop.Key == "status" || prop.Key == "publishstartdate" || prop.Key == "publishenddate")
+                if (prop.Key == "publishstatus" || prop.Key == "publishstartdate" || prop.Key == "publishenddate")
                 {
                     fieldLst.Add(prop.Key);
                     continue;
                 }
-
+                if (prop.Value.Type == "object")
+                {
+                    continue;
+                }
                 string optType = opts == null ? "text" : opts.Type;
 
                 if (prop.Value.Type == "boolean")
@@ -77,7 +92,12 @@ namespace Satrabel.OpenContent.Components.Alpaca
 
                     fieldLst.Add(prop.Key);
                 }
-                else if (optType == "text" || optType == "mltext" || optType == "checkbox" || optType == "select")
+                else if (prop.Value.Type == "number")
+                {
+
+                    fieldLst.Add(prop.Key);
+                }
+                else if (optType == "text" || optType == "mltext" || optType == "checkbox" || optType == "select" || optType == "select2")
                 {
                     var newProp = new SchemaConfig()
                     {
@@ -93,6 +113,12 @@ namespace Satrabel.OpenContent.Components.Alpaca
                     {
                         newProp.Type = "array";
                         newField.Type = "checkbox";
+                    }
+                    if (optType == "select2")
+                    {
+                        newProp.Type = "array";
+                        newField.Type = "select2";
+                        newField.DataService = opts == null ? null : opts.DataService;
                     }
                     fieldLst.Add(prop.Key);
                 }
@@ -224,7 +250,7 @@ namespace Satrabel.OpenContent.Components.Alpaca
             {
                 var opts = optionsConfig.Fields.ContainsKey(prop.Key) ? optionsConfig.Fields[prop.Key] : null;
                 string optType = opts == null ? "text" : opts.Type;
-                if (prop.Value.Type == "array" && prop.Value.Enum != null)
+                if (prop.Value.Type == "array" && (prop.Value.Enum != null || optType == "select" || optType == "select2"))
                 {
                     var newField = new FieldConfig()
                     {
@@ -237,7 +263,7 @@ namespace Satrabel.OpenContent.Components.Alpaca
                     };
                     newConfig.Fields.Add(prop.Key, newField);
                 }
-                else if (prop.Value.Enum != null)
+                else if (prop.Value.Enum != null || optType == "select" || optType == "select2")
                 {
                     var newField = new FieldConfig()
                     {
@@ -267,6 +293,16 @@ namespace Satrabel.OpenContent.Components.Alpaca
                     };
                     newConfig.Fields.Add(prop.Key, newField);
                 }
+                else if (optType == "wysihtml")
+                {
+                    var newField = new FieldConfig()
+                    {
+                        IndexType = "html",
+                        Index = true,
+                        Sort = true
+                    };
+                    newConfig.Fields.Add(prop.Key, newField);
+                }
                 else if (optType == "mltext")
                 {
                     var newField = new FieldConfig()
@@ -278,11 +314,32 @@ namespace Satrabel.OpenContent.Components.Alpaca
                     };
                     newConfig.Fields.Add(prop.Key, newField);
                 }
+                else if (optType == "mlwysihtml")
+                {
+                    var newField = new FieldConfig()
+                    {
+                        IndexType = "html",
+                        Index = true,
+                        Sort = true,
+                        MultiLanguage = true
+                    };
+                    newConfig.Fields.Add(prop.Key, newField);
+                }
                 else if (optType == "date")
                 {
                     var newField = new FieldConfig()
                     {
                         IndexType = "datetime",
+                        Index = true,
+                        Sort = true
+                    };
+                    newConfig.Fields.Add(prop.Key, newField);
+                }
+                else if (prop.Value.Type == "number")
+                {
+                    var newField = new FieldConfig()
+                    {
+                        IndexType = "float",
                         Index = true,
                         Sort = true
                     };

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
+using DotNetNuke.Common.Utilities;
 using DotNetNuke.Entities.Modules;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Tabs;
@@ -26,7 +29,7 @@ namespace Satrabel.OpenContent.Components
             string culture = PortalSettings.Current.CultureCode;
             TabController tc = new TabController();
             ModuleController mc = new ModuleController();
-            var modules = mc.GetModulesByDefinition(portalid, friendlyName).Cast<ModuleInfo>().OrderByDescending(m=> m.ModuleID);
+            var modules = mc.GetModulesByDefinition(portalid, friendlyName).Cast<ModuleInfo>().OrderByDescending(m => m.ModuleID);
             foreach (var mod in modules)
             {
                 var tab = tc.GetTab(mod.TabID, portalid, false);
@@ -56,12 +59,19 @@ namespace Satrabel.OpenContent.Components
         internal static string ToUrl(this IFileInfo fileInfo)
         {
             if (fileInfo == null) return "";
+            var url = FileManager.Instance.GetUrl(fileInfo);
+            return url;
+        }
+
+        internal static string ToUrlWithoutLinkClick(this IFileInfo fileInfo)
+        {
+            if (fileInfo == null) return "";
 
             var url = FileManager.Instance.GetUrl(fileInfo);
             if (url.ToLower().Contains("linkclick"))
             {
                 //this method works also for linkclick
-                url = fileInfo.PhysicalPath.Replace(new FolderUri("/").PhysicalFullDirectory, "");
+                url = "/" + fileInfo.PhysicalPath.Replace(new FolderUri("/").PhysicalFullDirectory, "").Replace("\\", "/");
             }
             return url;
         }
@@ -71,12 +81,48 @@ namespace Satrabel.OpenContent.Components
             //strange issues with getting the correct culture.
             if (PortalSettings.Current.ActiveTab != null && PortalSettings.Current.ActiveTab.IsNeutralCulture)
                 return PortalSettings.Current.CultureCode;
-            if (PortalSettings.Current.ActiveTab != null )
+            if (PortalSettings.Current.ActiveTab != null)
                 return PortalSettings.Current.ActiveTab.CultureCode;
-                
+
             return LocaleController.Instance.GetCurrentLocale(PortalSettings.Current.PortalId).Code;
         }
+        public static CultureInfo GetCurrentCulture()
+        {
+            return new CultureInfo(GetCurrentCultureCode());
+        }
+        internal static string GetCultureCode(int tabId, bool isSuperTab, PortalSettings settings)
+        {
+            string cultureCode = Null.NullString;
+            if (settings != null)
+            {
+                TabController tc = new TabController();
+                TabInfo linkTab = tc.GetTab(tabId, isSuperTab ? Null.NullInteger : settings.PortalId, false);
+                if (linkTab != null)
+                {
+                    cultureCode = linkTab.CultureCode;
+                }
+                if (string.IsNullOrEmpty(cultureCode))
+                {
+                    cultureCode = Thread.CurrentThread.CurrentCulture.Name;
+                }
+            }
 
+            return cultureCode;
+        }
+        public static int GetTabByCurrentCulture(int portalId, int tabId, string CultureCode)
+        {
+            var tc = new TabController();
+            Locale locale = LocaleController.Instance.GetLocale(CultureCode);
+            var tab = tc.GetTabByCulture(tabId, portalId, locale);
+            if (tab != null)
+            {
+                return tab.TabID;
+            }
+            else
+            {
+                return tabId;
+            }
+        }
         public static OpenContentSettings OpenContentSettings(this ModuleInfo module)
         {
             return new OpenContentSettings(module.ModuleSettings);

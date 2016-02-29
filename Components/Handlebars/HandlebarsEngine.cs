@@ -11,14 +11,15 @@ using DotNetNuke.UI.Modules;
 using System.Globalization;
 using Satrabel.OpenContent.Components.Manifest;
 using Satrabel.OpenContent.Components.TemplateHelpers;
+using Satrabel.OpenContent.Components.Dynamic;
 
 
 namespace Satrabel.OpenContent.Components.Handlebars
 {
     public class HandlebarsEngine
     {
-        private Func<object, string> template;
-        private int JSOrder = 100;
+        private Func<object, string> _template;
+        private int _jsOrder = 100;
 
         public void Compile(string source)
         {
@@ -31,12 +32,13 @@ namespace Satrabel.OpenContent.Components.Handlebars
             RegisterImageUrlHelper(hbs);
             RegisterArrayIndexHelper(hbs);
             RegisterArrayTranslateHelper(hbs);
-            template = hbs.Compile(source);
+            RegisterIfAndHelper(hbs);
+            _template = hbs.Compile(source);
         }
 
         public string Execute(dynamic model)
         {
-            var result = template(model);
+            var result = _template(model);
             return result;
         }
 
@@ -51,9 +53,9 @@ namespace Satrabel.OpenContent.Components.Handlebars
             RegisterImageUrlHelper(hbs);
             RegisterArrayIndexHelper(hbs);
             RegisterArrayTranslateHelper(hbs);
-            var template = hbs.Compile(source);
-            var result = template(model);
-            return result;
+            RegisterArrayLookupHelper(hbs);
+            RegisterIfAndHelper(hbs);
+            return CompileTemplate(hbs, source, model);
         }
         public string Execute(Page page, FileUri sourceFilename, dynamic model)
         {
@@ -72,9 +74,9 @@ namespace Satrabel.OpenContent.Components.Handlebars
             RegisterRegisterScriptHelper(hbs, page, sourceFolder);
             RegisterArrayIndexHelper(hbs);
             RegisterArrayTranslateHelper(hbs);
-            var template = hbs.Compile(source);
-            var result = template(model);
-            return result;
+            RegisterArrayLookupHelper(hbs);
+            RegisterIfAndHelper(hbs);
+            return CompileTemplate(hbs, source, model);
         }
         public string Execute(Page page, IModuleControl module, TemplateFiles files, string templateVirtualFolder, dynamic model)
         {
@@ -101,10 +103,25 @@ namespace Satrabel.OpenContent.Components.Handlebars
             //RegisterEditUrlHelper(hbs, module);
             RegisterArrayIndexHelper(hbs);
             RegisterArrayTranslateHelper(hbs);
-            var template = hbs.Compile(source);
-            var result = template(model);
-            return result;
+            RegisterArrayLookupHelper(hbs);
+            RegisterIfAndHelper(hbs);
+            return CompileTemplate(hbs, source, model);
         }
+
+        private string CompileTemplate(IHandlebars hbs, string source, dynamic model)
+        {
+            try
+            {
+                var compiledTemplate = hbs.Compile(source);
+                return compiledTemplate(model);
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error(string.Format("Failed to render Handlebar template source:[{0}], model:[{1}]", source, model), ex);
+                throw new Exception("failed to render Handlebar template. See log for more details");
+            }
+        }
+
         private void RegisterTemplate(HandlebarsDotNet.IHandlebars hbs, string name, string sourceFilename)
         {
             string fileName = System.Web.Hosting.HostingEnvironment.MapPath(sourceFilename);
@@ -198,7 +215,7 @@ namespace Satrabel.OpenContent.Components.Handlebars
                     {
                         jsfilename = sourceFolder + jsfilename;
                     }
-                    ClientResourceManager.RegisterScript(page, page.ResolveUrl(jsfilename), JSOrder++/*FileOrder.Js.DefaultPriority*/);
+                    ClientResourceManager.RegisterScript(page, page.ResolveUrl(jsfilename), _jsOrder++/*FileOrder.Js.DefaultPriority*/);
                     //writer.WriteSafeString(Page.ResolveUrl(jsfilename));
                 }
             });
@@ -317,6 +334,69 @@ namespace Satrabel.OpenContent.Components.Handlebars
 
         }
 
+        private void RegisterArrayLookupHelper(HandlebarsDotNet.IHandlebars hbs)
+        {
+            hbs.RegisterHelper("lookup", (writer, options, context, arguments) =>
+            {
+                object[] arr;
+                if (arguments[0] is IEnumerable<Object>)
+                {
+                    var en = arguments[0] as IEnumerable<Object>;
+                    arr = en.ToArray();
+                }
+                else
+                {
+                    arr = (object[])arguments[0];
+                }
+
+                var field = arguments[1].ToString();
+                var value = arguments[2].ToString();
+                foreach (var obj in arr)
+                {
+                    Object member = DynamicUtils.GetMemberValue(obj, field);
+                    if (value.Equals(member))
+                    {
+                        options.Template(writer, (object)obj);
+                    }
+                }
+                options.Inverse(writer, (object)context);
+            });
+            /*
+            hbs.RegisterHelper("arraylookup", (writer, context, parameters) =>
+            {
+                try
+                {
+                    object[] arr;
+                    if (parameters[0] is IEnumerable<Object>)
+                    {
+                        var en = parameters[0] as IEnumerable<Object>;
+                        arr = en.ToArray();
+                    }
+                    else
+                    {
+                        arr = (object[])parameters[0];
+                    }
+                    
+                    var value = parameters[1].ToString();
+                    var text = parameters[2].ToString();
+                    var key = parameters[3].ToString();
+                    foreach (var item in collection)
+                    {
+                        
+                    }
+                    object res = b[i];
+                    string c = parameters[2].ToString();
+                    HandlebarsDotNet.HandlebarsExtensions.
+                    //HandlebarsDotNet.HandlebarsExtensions.WriteSafeString(writer, res.ToString());
+                }
+                catch (Exception)
+                {
+                    HandlebarsDotNet.HandlebarsExtensions.WriteSafeString(writer, "");
+                }
+            });
+            */
+        }
+
         private void RegisterFormatNumberHelper(HandlebarsDotNet.IHandlebars hbs)
         {
             hbs.RegisterHelper("formatNumber", (writer, context, parameters) =>
@@ -356,8 +436,11 @@ namespace Satrabel.OpenContent.Components.Handlebars
                     //DateTime? datetime = parameters[0] as DateTime?;
 
                     DateTime datetime = DateTime.Parse(parameters[0].ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind);
-
-                    string format = parameters[1].ToString();
+                    string format = "dd/MM/yyyy";
+                    if (parameters.Count() > 1)
+                    {
+                        format = parameters[1].ToString();
+                    }
                     if (parameters.Count() > 2 && !string.IsNullOrWhiteSpace(parameters[2].ToString()))
                     {
                         string provider = parameters[2].ToString();
@@ -382,6 +465,25 @@ namespace Satrabel.OpenContent.Components.Handlebars
                 catch (Exception)
                 {
                     HandlebarsDotNet.HandlebarsExtensions.WriteSafeString(writer, "");
+                }
+            });
+        }
+        private void RegisterIfAndHelper(IHandlebars hbs)
+        {
+            hbs.RegisterHelper("ifand", (writer, options, context, arguments) =>
+            {
+                bool res = true;
+                foreach (var arg in arguments)
+                {
+                    res = res && HandlebarsUtils.IsTruthyOrNonEmpty(arg);
+                }
+                if (res)
+                {
+                    options.Template(writer, (object)context);
+                }
+                else
+                {
+                    options.Inverse(writer, (object)context);
                 }
             });
         }

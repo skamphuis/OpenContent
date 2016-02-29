@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Documents;
+﻿using DotNetNuke.Common.Utilities;
+using Lucene.Net.Documents;
 //using Lucene.Net.Linq;
 using Lucene.Net.Search;
 using Newtonsoft.Json;
@@ -138,7 +139,8 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
                             }
                             else
                             {
-                                doc.Add(new NumericField(prefix, Field.Store.NO, true).SetDoubleValue(Convert.ToDouble(value.Value)));
+                                doc.Add(new NumericField(prefix, Field.Store.NO, true).SetFloatValue((float)Convert.ToDouble(value.Value)));
+                                //doc.Add(new NumericField(prefix, Field.Store.NO, true).SetDoubleValue(Convert.ToDouble(value.Value)));
                             }
                         }
                         break;
@@ -153,7 +155,8 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
                     case JTokenType.Integer:
                         if (index || sort)
                         {
-                            doc.Add(new NumericField(prefix, Field.Store.NO, true).SetLongValue(Convert.ToInt64(value.Value)));
+                            doc.Add(new NumericField(prefix, Field.Store.NO, true).SetFloatValue((float)Convert.ToInt64(value.Value)));
+                            //doc.Add(new NumericField(prefix, Field.Store.NO, true).SetLongValue(Convert.ToInt64(value.Value)));
                         }
                         break;
 
@@ -165,6 +168,17 @@ namespace Satrabel.OpenContent.Components.Lucene.Mapping
                         if (field != null && field.IndexType == "key")
                         {
                             doc.Add(new Field(prefix, value.Value.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                        }
+                        else if (field != null && field.IndexType == "html")
+                        {
+                            if (index)
+                            {
+                                doc.Add(new Field(prefix, HtmlUtils.Clean(value.Value.ToString(), true), Field.Store.NO, Field.Index.ANALYZED));
+                            }
+                            if (sort)
+                            {
+                                doc.Add(new Field("@" + prefix, HtmlUtils.Clean(Truncate(value.Value.ToString(), 100), true), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                            }
                         }
                         else
                         {

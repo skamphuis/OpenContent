@@ -13,6 +13,10 @@ namespace Satrabel.OpenContent.Components.Lucene.Config
     public class QueryDefinition
     {
         private readonly FieldConfig IndexConfig;
+
+        private bool DefaultNoResults;
+        private Query _Query;
+
         public QueryDefinition(FieldConfig config)
         {
             this.IndexConfig = config;
@@ -22,16 +26,34 @@ namespace Satrabel.OpenContent.Components.Lucene.Config
         }
         public Query Filter { get; set; }
         public Sort Sort { get; set; }
-        public Query Query { get; set; }
+        public Query Query
+        {
+            get
+            {
+                return _Query;
+            }
+            set
+            {
+                if (DefaultNoResults && value != null && (new MatchAllDocsQuery()).ToString() == value.ToString())
+                {
+                    _Query = new BooleanQuery();
+                }
+                else
+                {
+                    _Query = value;
+                }
+            }
+        }
         public int PageSize { get; set; }
         public int PageIndex { get; set; }
         public QueryDefinition Build(JObject query, bool addWorkflowFilter, NameValueCollection QueryString = null)
         {
             BuildPage(query);
-            BuildFilter(query, addWorkflowFilter ,QueryString);
+            BuildFilter(query, addWorkflowFilter, QueryString);
             BuildSort(query);
             return this;
         }
+
         public QueryDefinition BuildPage(JObject query)
         {
             int maxResults = 0;
@@ -40,11 +62,30 @@ namespace Satrabel.OpenContent.Components.Lucene.Config
             {
                 PageSize = maxResults;
             }
+
+            var sDefaultNoResults = query["DefaultNoResults"] as JValue;
+            if (sDefaultNoResults != null && sDefaultNoResults.Type == JTokenType.Boolean)
+            {
+                DefaultNoResults = (bool)sDefaultNoResults.Value;
+            }
+
             return this;
         }
         public QueryDefinition BuildFilter(JObject query, bool addWorkflowFilter, NameValueCollection QueryString = null)
         {
             BooleanQuery q = new BooleanQuery();
+
+            var vExcludeCurrentItem = query["ExcludeCurrentItem"] as JValue;
+            bool ExcludeCurrentItem = false;
+            if (vExcludeCurrentItem != null && vExcludeCurrentItem.Type == JTokenType.Boolean)
+            {
+                ExcludeCurrentItem = (bool)vExcludeCurrentItem.Value;
+            }
+            if (ExcludeCurrentItem && QueryString != null && QueryString["id"] != null)
+            {
+                q.Add(new MatchAllDocsQuery(), Occur.MUST);
+                q.Add(new TermQuery(new Term("$id", QueryString["id"])), Occur.MUST_NOT);
+            }
             var filter = query["Filter"] as JObject;
             if (filter != null)
             {
@@ -136,7 +177,7 @@ namespace Satrabel.OpenContent.Components.Lucene.Config
             BooleanQuery q = new BooleanQuery();
             if (addWorkflowFilter)
             {
-               AddWorkflowFilter(q);
+                AddWorkflowFilter(q);
             }
             Filter = q.Clauses.Count > 0 ? q : null;
             return this;
@@ -145,9 +186,9 @@ namespace Satrabel.OpenContent.Components.Lucene.Config
         private void AddWorkflowFilter(BooleanQuery q)
         {
 
-            if (IndexConfig != null && IndexConfig.Fields != null && IndexConfig.Fields.ContainsKey("status"))
+            if (IndexConfig != null && IndexConfig.Fields != null && IndexConfig.Fields.ContainsKey("publishstatus"))
             {
-                q.Add(new TermQuery(new Term("status", "published")), Occur.MUST); // and
+                q.Add(new TermQuery(new Term("publishstatus", "published")), Occur.MUST); // and
             }
             if (IndexConfig != null && IndexConfig.Fields != null && IndexConfig.Fields.ContainsKey("publishstartdate"))
             {

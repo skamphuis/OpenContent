@@ -168,4 +168,7 @@
   <data name="EditQuery.Action" xml:space="preserve">
     <value>Filter Settings</value>
   </data>
+  <data name="EditInit.Action" xml:space="preserve">
+    <value>Change Template</value>
+  </data>
 </root>
