@@ -15,6 +15,7 @@ using DotNetNuke.Entities.Modules;
 using DotNetNuke.Services.Search;
 using DotNetNuke.Common.Utilities;
 using System.Xml;
+using System.Linq;
 using DotNetNuke.Common;
 using System;
 using DotNetNuke.Services.Search.Entities;
@@ -22,10 +23,13 @@ using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using DotNetNuke.Services.Social.Notifications.Data;
 using Satrabel.OpenContent.Components.Infrastructure;
+using DotNetNuke.Entities.Portals;
+using System.IO;
+using System.Web.Hosting;
 
 namespace Satrabel.OpenContent.Components
 {
-    public class FeatureController : ModuleSearchBase, IPortable //, IUpgradeable
+    public class FeatureController : ModuleSearchBase, IPortable, IUpgradeable
     {
         #region Optional Interfaces
         public string ExportModule(int ModuleID)
@@ -141,5 +145,28 @@ namespace Satrabel.OpenContent.Components
         //	throw new System.NotImplementedException("The method or operation is not implemented.");
         //}
         #endregion
+
+        public string UpgradeModule(string Version)
+        {
+            string res = "";
+            if (Version == "02.01.00")
+            {
+
+                var pc = new PortalController();
+                foreach (var p in pc.GetPortals().Cast<PortalInfo>())
+                {
+                    string webConfig =  HostingEnvironment.MapPath("~/"+p.HomeDirectory+"/OpenContent/Templates/web.config");
+                    res += webConfig;
+                    if (File.Exists(webConfig))
+                    {
+                        res += " : found \n"; 
+                        File.Delete(webConfig);
+                        string filename = HostingEnvironment.MapPath("~/DesktopModules/OpenContent/Templates/web.config");
+                        File.Copy(filename, webConfig);
+                    }    
+                }
+            }
+            return Version + res; 
+        }
     }
 }

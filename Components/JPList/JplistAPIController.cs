@@ -116,10 +116,12 @@ namespace Satrabel.OpenContent.Components.JPList
                     }
                     var model = mf.GetModelAsJson(false);
 
+                    model["luceneQuery"] = def.Query.ToString();
                     var res = new ResultDTO()
                     {
                         data = model,
                         count = total
+                        
                     };
 
                     return Request.CreateResponse(HttpStatusCode.OK, res);

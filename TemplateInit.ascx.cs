@@ -25,6 +25,7 @@ namespace Satrabel.OpenContent
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            pHelp.Visible = false;
         }
         protected void rblFrom_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -184,7 +185,7 @@ namespace Satrabel.OpenContent
             bool settingsDefined = !string.IsNullOrEmpty(settings.Data);
             bool settingsNeeded = false;
 
-            if (rblUseTemplate.SelectedIndex == 0) // existing template
+            if (rblUseTemplate.SelectedIndex == 0 && ddlTemplate.SelectedIndex >= 0) // existing template
             {
                 //create tmp TemplateManifest
                 var templateManifest = new FileUri(ddlTemplate.SelectedValue).ToTemplateManifest();
@@ -215,8 +216,8 @@ namespace Satrabel.OpenContent
 
                 //bSave.CssClass = "dnnSecondaryAction";
                 //bSave.Enabled = false;
-                hlEditSettings.CssClass = "dnnPrimaryAction";
-                hlEditContent.CssClass = "dnnSecondaryAction";
+                //hlEditSettings.CssClass = "dnnPrimaryAction";
+                //hlEditContent.CssClass = "dnnSecondaryAction";
 
             }
             hlEditContent.Visible = !RenderOnlySaveButton;
@@ -231,15 +232,15 @@ namespace Satrabel.OpenContent
                 hlEditContent2.Enabled = true;
                 //bSave.CssClass = "dnnSecondaryAction";
                 //bSave.Enabled = false;
-                hlEditSettings.CssClass = "dnnSecondaryAction";
-                hlEditContent.CssClass = "dnnPrimaryAction";
+                //hlEditSettings.CssClass = "dnnSecondaryAction";
+                //hlEditContent.CssClass = "dnnPrimaryAction";
             }
         }
         public void RenderInitForm()
         {
             Renderinfo.ShowDemoData = false;
             pHelp.Visible = true;
-            if (!Page.IsPostBack)
+            if (!Page.IsPostBack || ddlTemplate.Items.Count == 0)
             {
                 rblDataSource.SelectedIndex = (Settings.TabId > 0 && Settings.ModuleId > 0 ? 1 : 0);
                 BindOtherModules(Settings.TabId, Settings.ModuleId);
@@ -253,7 +254,7 @@ namespace Satrabel.OpenContent
                 Renderinfo.SetDataSourceModule(dsModule.TabID, dsModule.ModuleID, dsModule, dsSettings.Template, dsSettings.Data);
             }
             BindButtons(Settings, Renderinfo);
-            if (rblUseTemplate.SelectedIndex == 0) // existing template
+            if (rblUseTemplate.SelectedIndex == 0 ) // existing template
             {
                 Renderinfo.Template = new FileUri(ddlTemplate.SelectedValue).ToTemplateManifest();
                 if (rblDataSource.SelectedIndex == 0) // this module
@@ -333,7 +334,7 @@ namespace Satrabel.OpenContent
             //var tabs = tc.GetTabsByPortal(ModuleContext.PortalId);
             foreach (var tab in tabs)
             {
-                
+
                 //var tabpath = tab.TabPath.Replace("//", "/").TrimEnd(tab.TabName).Trim('/');
                 var li = new ListItem(tab.Key.Replace("//", " / ").TrimStart(" / "), tab.Value.ToString());
                 if (!tab.Key.StartsWith("//Admin//"))
@@ -354,11 +355,14 @@ namespace Satrabel.OpenContent
         private void ActivateDetailPage()
         {
             phDetailPage.Visible = false;
-            var template = new FileUri(ddlTemplate.SelectedValue);
-            var manifest = template.ToTemplateManifest();
-            if (manifest.IsListTemplate)
+            if (ddlTemplate.SelectedIndex >= 0 && rblUseTemplate.SelectedIndex == 0 ) // existing template
             {
-                phDetailPage.Visible = true;
+                var template = new FileUri(ddlTemplate.SelectedValue);
+                var manifest = template.ToTemplateManifest();
+                if (manifest.IsListTemplate)
+                {
+                    phDetailPage.Visible = true;
+                }
             }
         }
 

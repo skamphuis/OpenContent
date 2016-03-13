@@ -20,7 +20,6 @@ namespace Satrabel.OpenContent.Components
         /// </summary>
         /// <param name="friendlyName">Friendly name of the module.</param>
         /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
         internal static ModuleInfo GetLastModuleByFriendlyName(string friendlyName)
         {
             //DesktopModuleController dmc = new DesktopModuleController();
@@ -33,7 +32,7 @@ namespace Satrabel.OpenContent.Components
             foreach (var mod in modules)
             {
                 var tab = tc.GetTab(mod.TabID, portalid, false);
-                if (tab.CultureCode == culture || tab.CultureCode == null)
+                if (tab.CultureCode == culture || string.IsNullOrEmpty(tab.CultureCode))
                 {
                     return mod;
                 }
