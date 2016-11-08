@@ -46,3 +46,5 @@ ResourcesZip/
 *.log
 Templates/Develop/
 OpenContent.sln
+/*.user
+/*.suo
